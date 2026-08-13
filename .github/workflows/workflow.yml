@@ -1,26 +1,28 @@
-name: Component_Tests
+name: Tests
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 jobs:
   Application-Build:
     runs-on: ubuntu-24.04
     steps:
-    -  uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
-    - name: build_application_message
-      run: echo "Building application..."
-    -  name: build_frontend
-       run: go build
-       working-directory: frontend
-    -  name: build_backend
-       run: go build
-       working-directory: frontend
-#--------------------------------- TESTING--------------------------------------  
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: build_application_message
+        run: echo "Building application..."
+      - name: build_frontend
+        run: go build
+        working-directory: frontend
+      - name: build_backend
+        run: go build
+        working-directory: backend
+
+#--------------------------------- TESTING--------------------------------------
   Unitest-Frontend-Code:
     runs-on: ubuntu-24.04
     needs: Application-Build
@@ -34,6 +36,7 @@ jobs:
       - name: run frontend test
         run: go test
         working-directory: frontend
+
   Unitest-Backend-Code:
     runs-on: ubuntu-24.04
     needs: Application-Build
@@ -48,53 +51,104 @@ jobs:
         run: go test
         working-directory: backend
 
-#----------------------------------DOCKER-------------------------------------- 
+#----------------------------------DOCKER--------------------------------------
   Docker-Image-Frontend-Build-And-Push:
     runs-on: ubuntu-24.04
     needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: GitHub Container Registry Login
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build Docker
         run: docker build -t ghcr.io/mihneatudor/frontend:${{ github.sha }} ./frontend
       - name: Push Docker
         run: docker push ghcr.io/mihneatudor/frontend:${{ github.sha }}
-        
+
   Docker-Image-Backend-Build-And-Push:
     runs-on: ubuntu-24.04
     needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: GitHub Container Registry Login
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build Docker
         run: docker build -t ghcr.io/mihneatudor/backend:${{ github.sha }} ./backend
-
       - name: Push Docker
         run: docker push ghcr.io/mihneatudor/backend:${{ github.sha }}
+
+#----------------------------------SMOKE TEST-----------------------------------
+  Smoke-Test:
+    runs-on: ubuntu-24.04
+    needs: [Application-Build]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t backend:test ./backend
+
+      - name: Build frontend image
+        run: docker build -t frontend:test ./frontend
+
+      - name: Run backend container
+        run: docker run -d --name backend -p 8080:8080 backend:test
+
+      - name: Run frontend container
+        run: docker run -d --name frontend -p 9000:9000 frontend:test
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8080/healthz > /dev/null 2>&1; then
+              echo "Backend is up"
+              break
+            fi
+            echo "Waiting for backend... ($i)"
+            sleep 2
+          done
+
+      - name: Wait for frontend to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:9000/fortunes > /dev/null 2>&1; then
+              echo "Frontend is up"
+              break
+            fi
+            echo "Waiting for frontend... ($i)"
+            sleep 2
+          done
+
+      - name: Run smoke-test.sh
+        run: bash smoke-test.sh
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "---- backend logs ----"
+          docker logs backend || true
+          echo "---- frontend logs ----"
+          docker logs frontend || true
+
+      - name: Cleanup containers
+        if: always()
+        run: |
+          docker rm -f backend frontend || true
 
 #----------------------------------KUBERNETES-------------------------------------- 
   # Deploy-To-Kubernetes:
