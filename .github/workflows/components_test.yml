@@ -51,6 +51,7 @@ jobs:
 #----------------------------------DOCKER-------------------------------------- 
   build-and-push-frontend:
     runs-on: ubuntu-24.04
+    needs: [Frontend-Test, Backend-Test]
     permissions:
       contents: read
       packages: write
