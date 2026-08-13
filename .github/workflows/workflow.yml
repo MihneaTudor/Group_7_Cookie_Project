@@ -54,7 +54,7 @@ jobs:
 #----------------------------------DOCKER--------------------------------------
   Docker-Image-Frontend-Build-And-Push:
     runs-on: ubuntu-24.04
-    needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
+    needs: [Unitest-Frontend-Code, Unitest-Backend-Code, Smoke-Test]
     permissions:
       contents: read
       packages: write
@@ -74,7 +74,7 @@ jobs:
 
   Docker-Image-Backend-Build-And-Push:
     runs-on: ubuntu-24.04
-    needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
+    needs: [Unitest-Frontend-Code, Unitest-Backend-Code, Smoke-Test]
     permissions:
       contents: read
       packages: write
