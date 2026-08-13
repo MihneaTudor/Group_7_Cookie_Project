@@ -1,0 +1,24 @@
+name: Component_Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  frontend_test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: frontend_test_message
+        run: bash echo "Running frontend test..."
+      - name: run frontend test
+        run: bash cd frontend && go test && cd ..
+  backend_test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: backend_test_message
+        run: bash echo "Running backend test..."
+      - name: backend test
+        run: bash cd backend && go test && cd ..
+      
