@@ -68,8 +68,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker
-        run: docker build -t ghcr.io/frontend:${{ github.sha }} ./frontend
-
+        run: docker build -t ghcr.io/{{ github.repository_owner }}/frontend:${{ github.sha }} ./backend
       - name: Push Docker
         run: docker push ghcr.io/frontend:${{ github.sha }}
         
@@ -92,7 +91,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker
-        run: docker build -t ghcr.io/backend:${{ github.sha }} ./backend
+        run: docker build -t ghcr.io/{{ github.repository_owner }}/backend:${{ github.sha }} ./backend
 
       - name: Push Docker
         run: docker push ghcr.io/backend:${{ github.sha }}
