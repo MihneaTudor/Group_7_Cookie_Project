@@ -5,6 +5,22 @@ on:
   pull_request:
     branches: [main]
 jobs:
+  Application_Build:
+    runs-on: ubuntu-24.04
+    steps:
+    -  uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    - name: build_application_message
+      run: echo "Building application..."
+    -  name: build_frontend
+       run: go build
+       working-directory: frontend
+    -  name: build_backend
+       run: go build
+       working-directory: frontend
+#TESTING    
   frontend_test:
     runs-on: ubuntu-24.04
     steps:
