@@ -20,8 +20,6 @@ spec:
       containers:
         - name: frontend
           image: ghcr.io/mihneatudor/frontend:a17ed596587fe56efda948a51059c2286b565914
-          env:
-          - name: BACKEND_DNS
-            value: "backend"
-          - name: BACKEND_PORT
-            value: "8081"
+          envFrom:
+          - configMapRef:
+              name: frontend-config
