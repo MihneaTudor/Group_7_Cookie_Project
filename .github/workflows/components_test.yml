@@ -97,23 +97,23 @@ jobs:
         run: docker push ghcr.io/mihneatudor/backend:${{ github.sha }}
 
 #----------------------------------KUBERNETES-------------------------------------- 
-  Deploy-To-Kubernetes:
-    runs-on: ubuntu-24.04
-    needs: [Docker-Image-Frontend-Build-And-Push , Docker-Image-Backend-Build-And-Push]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-      - name: Restore kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-      - name: Test cluster connection
-        run: kubectl get nodes
-      - name: Deploy manifests
-        run: kubectl apply -f deployment/
+  # Deploy-To-Kubernetes:
+  #   runs-on: ubuntu-24.04
+  #   needs: [Docker-Image-Frontend-Build-And-Push , Docker-Image-Backend-Build-And-Push]
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Set up kubectl
+  #       uses: azure/setup-kubectl@v4
+  #     - name: Restore kubeconfig
+  #       run: |
+  #         mkdir -p ~/.kube
+  #         echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+  #         chmod 600 ~/.kube/config
+  #     - name: Test cluster connection
+  #       run: kubectl get nodes
+  #     - name: Deploy manifests
+  #       run: kubectl apply -f deployment/
         
         
       
