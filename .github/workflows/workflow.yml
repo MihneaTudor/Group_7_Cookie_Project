@@ -142,7 +142,7 @@ jobs:
 #----------------------------------KUBERNETES-------------------------------------- 
   Deploy-To-Kubernetes:
     runs-on: ubuntu-24.04
-    needs: [Smoke-Test]
+    needs: [ Docker-Image-Frontend-Build-And-Push , Docker-Image-Backend-Build-And-Push]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
