@@ -70,7 +70,7 @@ jobs:
       - name: Build Docker
         run: docker build -t ghcr.io/mihneatudor/frontend:${{ github.sha }} ./frontend
       - name: Push Docker
-        run: docker push ghcr.io/frontend:${{ github.sha }}
+        run: docker push ghcr.io/mihneatudor/frontend:${{ github.sha }}
         
   build-and-push-backend:
     runs-on: ubuntu-24.04
@@ -94,7 +94,7 @@ jobs:
         run: docker build -t ghcr.io/mihneatudor/backend:${{ github.sha }} ./backend
 
       - name: Push Docker
-        run: docker push ghcr.io/backend:${{ github.sha }}
+        run: docker push ghcr.io/mihneatudor/backend:${{ github.sha }}
         
         
       
