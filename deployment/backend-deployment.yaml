@@ -20,8 +20,6 @@ spec:
       containers:
         - name: backend
           image: ghcr.io/mihneatudor/backend:a17ed596587fe56efda948a51059c2286b565914
-          env:
-          - name: REDIS_DNS
-            value: "redisdb"
-          - name: REDIS_PORT
-            value: "5000"
+          envFrom:
+            - configMapRef:
+                name: backend-config
