@@ -21,7 +21,7 @@ jobs:
        run: go build
        working-directory: frontend
 #--------------------------------- TESTING--------------------------------------  
-  Frontend-Test:
+  Unitest-Frontend-Code:
     runs-on: ubuntu-24.04
     needs: Application-Build
     steps:
@@ -34,7 +34,7 @@ jobs:
       - name: run frontend test
         run: go test
         working-directory: frontend
-  Backend-Test:
+  Unitest-Backend-Code:
     runs-on: ubuntu-24.04
     needs: Application-Build
     steps:
@@ -49,9 +49,9 @@ jobs:
         working-directory: backend
 
 #----------------------------------DOCKER-------------------------------------- 
-  build-and-push-frontend:
+  Docker-Image-Frontend-Build-And-Push:
     runs-on: ubuntu-24.04
-    needs: [Frontend-Test, Backend-Test]
+    needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
     permissions:
       contents: read
       packages: write
@@ -72,9 +72,9 @@ jobs:
       - name: Push Docker
         run: docker push ghcr.io/mihneatudor/frontend:${{ github.sha }}
         
-  build-and-push-backend:
+  Docker-Image-Backend-Build-And-Push:
     runs-on: ubuntu-24.04
-    needs: [Frontend-Test, Backend-Test]
+    needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
     permissions:
       contents: read
       packages: write
