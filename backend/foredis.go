@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"log"
+	"os"
 	"sync"
 	"time"
-	"os"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 var dbLink redis.Conn
@@ -31,6 +32,7 @@ func init() {
 
 	if !usingRedis {
 		log.Println("Failed to connect to redis after 5 attempts")
+		log.Println("Using in memory storage")
 		return
 	}
 
