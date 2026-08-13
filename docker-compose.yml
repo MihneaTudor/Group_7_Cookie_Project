@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: fortune-backend
+    environment:
+      REDIS_DNS: redis
+    ports:
+      - "9000:9000"
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: fortune-frontend
+    environment:
+      BACKEND_DNS: backend
+      BACKEND_PORT: 9000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:     
+    - "6379:6379"
+    volumes:
+      [redis-data:/data]
+    command: redis-server --appendonly yes
+
+volumes:
+  redis-data:
