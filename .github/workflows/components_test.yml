@@ -5,8 +5,25 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  frontend_test:
+  Application-Build:
     runs-on: ubuntu-24.04
+    steps:
+    -  uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    - name: build_application_message
+      run: echo "Building application..."
+    -  name: build_frontend
+       run: go build
+       working-directory: frontend
+    -  name: build_backend
+       run: go build
+       working-directory: frontend
+#--------------------------------- TESTING--------------------------------------  
+  Unitest-Frontend-Code:
+    runs-on: ubuntu-24.04
+    needs: Application-Build
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -17,8 +34,9 @@ jobs:
       - name: run frontend test
         run: go test
         working-directory: frontend
-  backend_test:
+  Unitest-Backend-Code:
     runs-on: ubuntu-24.04
+    needs: Application-Build
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -29,4 +47,73 @@ jobs:
       - name: backend test
         run: go test
         working-directory: backend
+
+#----------------------------------DOCKER-------------------------------------- 
+  Docker-Image-Frontend-Build-And-Push:
+    runs-on: ubuntu-24.04
+    needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: GitHub Container Registry Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker
+        run: docker build -t ghcr.io/mihneatudor/frontend:${{ github.sha }} ./frontend
+      - name: Push Docker
+        run: docker push ghcr.io/mihneatudor/frontend:${{ github.sha }}
+        
+  Docker-Image-Backend-Build-And-Push:
+    runs-on: ubuntu-24.04
+    needs: [Unitest-Frontend-Code, Unitest-Backend-Code]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: GitHub Container Registry Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker
+        run: docker build -t ghcr.io/mihneatudor/backend:${{ github.sha }} ./backend
+
+      - name: Push Docker
+        run: docker push ghcr.io/mihneatudor/backend:${{ github.sha }}
+
+#----------------------------------KUBERNETES-------------------------------------- 
+  # Deploy-To-Kubernetes:
+  #   runs-on: ubuntu-24.04
+  #   needs: [Docker-Image-Frontend-Build-And-Push , Docker-Image-Backend-Build-And-Push]
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Set up kubectl
+  #       uses: azure/setup-kubectl@v4
+  #     - name: Restore kubeconfig
+  #       run: |
+  #         mkdir -p ~/.kube
+  #         echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+  #         chmod 600 ~/.kube/config
+  #     - name: Test cluster connection
+  #       run: kubectl get nodes
+  #     - name: Deploy manifests
+  #       run: kubectl apply -f deployment/
+        
+        
       
