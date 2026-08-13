@@ -94,61 +94,50 @@ jobs:
 
 #----------------------------------SMOKE TEST-----------------------------------
   Smoke-Test:
-    runs-on: ubuntu-24.04
-    needs: [Application-Build]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build backend image
-        run: docker build -t backend:test ./backend
-
-      - name: Build frontend image
-        run: docker build -t frontend:test ./frontend
-
-      - name: Run backend container
-        run: docker run -d --name backend -p 8080:8080 backend:test
-
-      - name: Run frontend container
-        run: docker run -d --name frontend -p 9000:9000 frontend:test
-
-      - name: Wait for backend to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://localhost:8080/healthz > /dev/null 2>&1; then
-              echo "Backend is up"
-              break
-            fi
-            echo "Waiting for backend... ($i)"
-            sleep 2
-          done
-
-      - name: Wait for frontend to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://localhost:9000/fortunes > /dev/null 2>&1; then
-              echo "Frontend is up"
-              break
-            fi
-            echo "Waiting for frontend... ($i)"
-            sleep 2
-          done
-
-      - name: Run smoke-test.sh
-        run: bash smoke-test.sh
-
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          echo "---- backend logs ----"
-          docker logs backend || true
-          echo "---- frontend logs ----"
-          docker logs frontend || true
-
-      - name: Cleanup containers
-        if: always()
-        run: |
-          docker rm -f backend frontend || true
+      runs-on: ubuntu-24.04
+      needs: [Application-Build]
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+  
+        - name: Build backend image
+          run: docker build -t backend:test ./backend
+  
+        - name: Build frontend image
+          run: docker build -t frontend:test ./frontend
+  
+        - name: Create test network
+          run: docker network create smoke-test-net
+  
+        - name: Run backend container
+          run: docker run -d --name backend --network smoke-test-net backend:test
+  
+        - name: Run frontend container
+          run: docker run -d --name frontend --network smoke-test-net frontend:test
+  
+        - name: Run smoke tests
+          run: |
+            docker run --rm \
+              --network smoke-test-net \
+              -e BACKEND_URL=http://backend:8080 \
+              -e FRONTEND_URL=http://frontend:9000 \
+              -v "$PWD/smoke-test.sh:/smoke-test.sh:ro" \
+              curlimages/curl:latest \
+              sh /smoke-test.sh
+  
+        - name: Show logs on failure
+          if: failure()
+          run: |
+            echo "---- backend logs ----"
+            docker logs backend || true
+            echo "---- frontend logs ----"
+            docker logs frontend || true
+  
+        - name: Cleanup
+          if: always()
+          run: |
+            docker rm -f backend frontend || true
+            docker network rm smoke-test-net || true
 
 #----------------------------------KUBERNETES-------------------------------------- 
   # Deploy-To-Kubernetes:
