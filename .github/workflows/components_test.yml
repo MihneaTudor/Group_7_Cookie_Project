@@ -10,15 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: frontend_test_message
-        run: bash echo "Running frontend test..."
+        run: echo "Running frontend test..."
       - name: run frontend test
-        run: bash cd frontend && go test && cd ..
+        run: frontend && go test && cd ..
   backend_test:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: backend_test_message
-        run: bash echo "Running backend test..."
+        run: echo "Running backend test..."
       - name: backend test
-        run: bash cd backend && go test && cd ..
+        run: cd backend && go test && cd ..
       
