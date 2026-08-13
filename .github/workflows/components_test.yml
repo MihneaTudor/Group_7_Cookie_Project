@@ -12,7 +12,8 @@ jobs:
       - name: frontend_test_message
         run: echo "Running frontend test..."
       - name: run frontend test
-        run: frontend && go test && cd ..
+        run: go test
+        working-directory: frontend
   backend_test:
     runs-on: ubuntu-24.04
     steps:
@@ -20,5 +21,6 @@ jobs:
       - name: backend_test_message
         run: echo "Running backend test..."
       - name: backend test
-        run: cd backend && go test && cd ..
+        run: go test
+        working-directory: backend
       
