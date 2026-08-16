@@ -119,11 +119,34 @@ jobs:
           run: |
             docker run --rm \
               --network smoke-test-net \
-              -e BACKEND_URL=http://backend:8080 \
-              -e FRONTEND_URL=http://frontend:9000 \
-              -v "$PWD/smoke-test.sh:/smoke-test.sh:ro" \
               curlimages/curl:latest \
-              sh /smoke-test.sh
+              sh -c '
+                echo "Checking backend healthz...";
+                for i in $(seq 1 10); do
+                  if curl -sf http://backend:9000/healthz | grep -q "OK"; then
+                    echo "Backend healthy";
+                    break;
+                  fi;
+                  if [ "$i" = "10" ]; then
+                    echo "Backend healthz failed after retries";
+                    exit 1;
+                  fi;
+                  sleep 3;
+                done;
+
+                echo "Checking frontend healthz...";
+                for i in $(seq 1 10); do
+                  if curl -sf http://frontend:8080/healthz | grep -q "OK"; then
+                    echo "Frontend healthy";
+                    break;
+                  fi;
+                  if [ "$i" = "10" ]; then
+                    echo "Frontend healthz failed after retries";
+                    exit 1;
+                  fi;
+                  sleep 3;
+                done;
+              '
   
         - name: Show logs on failure
           if: failure()
