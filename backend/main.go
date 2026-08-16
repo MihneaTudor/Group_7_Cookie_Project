@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -159,6 +160,11 @@ func (h *fortuneHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonBytes)
 }
 
+func HealthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, "healthy")
+}
+
 func internalServerError(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("internal server error"))
@@ -171,6 +177,7 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", HealthzHandler)
 	fortuneH := &fortuneHandler{
 		store: &datastoreDefault,
 	}
